@@ -511,6 +511,9 @@ export default function App() {
   
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
+  const touchStartY = useRef(0);
+  const touchEndY = useRef(0);
+  const isSwiping = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -1308,13 +1311,31 @@ export default function App() {
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    isSwiping.current = false;
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     touchEndX.current = e.touches[0].clientX;
+    touchEndY.current = e.touches[0].clientY;
+    
+    const diffX = Math.abs(touchStartX.current - touchEndX.current);
+    const diffY = Math.abs(touchStartY.current - touchEndY.current);
+    
+    if (diffX > 10 || diffY > 10) {
+      isSwiping.current = true;
+    }
   };
 
   const handleTouchEnd = () => {
+    if (!isSwiping.current) {
+      touchStartX.current = 0;
+      touchEndX.current = 0;
+      touchStartY.current = 0;
+      touchEndY.current = 0;
+      return;
+    }
+    
     const diff = touchStartX.current - touchEndX.current;
     const threshold = 50;
     
@@ -1328,6 +1349,9 @@ export default function App() {
     
     touchStartX.current = 0;
     touchEndX.current = 0;
+    touchStartY.current = 0;
+    touchEndY.current = 0;
+    isSwiping.current = false;
   };
 
   const renderPreviewContent = (isDesktop: boolean) => (
@@ -1414,7 +1438,7 @@ export default function App() {
       >
       <div className="max-w-6xl mx-auto space-y-8">
         
-        <div className="fixed top-0 left-0 right-0 z-40 px-4 md:px-8 bg-transparent pt-2 safe-area-top">
+        <div className="fixed top-0 left-0 right-0 z-40 px-4 md:px-8 bg-transparent safe-area-top">
           <div className={cn(
             "backdrop-blur-xl rounded-2xl shadow-lg shadow-black/10 p-3 flex items-center justify-between w-full",
             isDarkMode ? "bg-[#2c2c2e]/90 border border-[#3a3a3c]" : "bg-white/90 border border-[#E5E5EA]"
@@ -1463,14 +1487,14 @@ export default function App() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pt-28 pb-24">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pt-20 pb-28">
           
           <div 
             ref={containerRef}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            className="lg:col-span-5 relative min-h-[calc(100vh-220px)] md:min-h-0 md:block"
+            className="lg:col-span-5 relative min-h-[calc(100vh-220px)] md:min-h-0 md:block touch-pan-y"
           >
             
             {/* Step 1: Content Input */}
@@ -2056,7 +2080,7 @@ export default function App() {
             )}
 
             {/* Stepper Navigation */}
-            <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 pb-6 safe-area-bottom z-50">
+            <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 safe-area-bottom z-50">
                 <div className={cn(
                   "backdrop-blur-xl rounded-2xl shadow-lg shadow-black/10 p-3 flex items-center justify-between",
                   isDarkMode ? "bg-[#2c2c2e]/90 border border-[#3a3a3c]" : "bg-white/90 border border-[#E5E5EA]"
