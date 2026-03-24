@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -17,6 +19,8 @@ interface UpdateInfo {
 function useAppUpdate() {
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
   const [checking, setChecking] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   const currentVersion = '1.0.0';
@@ -66,15 +70,80 @@ function useAppUpdate() {
     }
   }, []);
 
-  const downloadUpdate = useCallback(() => {
-    if (updateInfo?.downloadUrl) {
-      window.open(updateInfo.downloadUrl, '_blank');
+  const downloadUpdate = useCallback(async () => {
+    if (!updateInfo?.downloadUrl) return;
+    
+    setDownloading(true);
+    setDownloadProgress(0);
+    setError(null);
+
+    try {
+      if (Capacitor.isNativePlatform()) {
+        const response = await fetch(updateInfo.downloadUrl);
+        const contentLength = response.headers.get('content-length');
+        const total = contentLength ? parseInt(contentLength, 10) : 0;
+        
+        const reader = response.body?.getReader();
+        if (!reader) throw new Error('无法读取响应');
+        
+        const chunks: Uint8Array[] = [];
+        let received = 0;
+        
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          
+          chunks.push(value);
+          received += value.length;
+          
+          if (total > 0) {
+            setDownloadProgress(Math.round((received / total) * 100));
+          }
+        }
+        
+        const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
+        const combinedArray = new Uint8Array(totalLength);
+        let offset = 0;
+        for (const chunk of chunks) {
+          combinedArray.set(chunk, offset);
+          offset += chunk.length;
+        }
+        
+        const blob = new Blob([combinedArray]);
+        const base64 = await blobToBase64(blob);
+        
+        const fileName = `qr-code-v${updateInfo.latestVersion}.apk`;
+        
+        await Filesystem.writeFile({
+          path: `Download/${fileName}`,
+          data: base64.split(',')[1],
+          directory: Directory.ExternalStorage,
+        });
+        
+        setDownloadProgress(100);
+        
+        const fileUri = await Filesystem.getUri({
+          path: `Download/${fileName}`,
+          directory: Directory.ExternalStorage,
+        });
+        
+        window.open(fileUri.uri, '_system');
+        
+      } else {
+        window.open(updateInfo.downloadUrl, '_blank');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '下载失败');
+    } finally {
+      setDownloading(false);
     }
   }, [updateInfo]);
 
   return {
     updateInfo,
     checking,
+    downloading,
+    downloadProgress,
     error,
     checkForUpdate,
     downloadUpdate,
@@ -82,12 +151,21 @@ function useAppUpdate() {
   };
 }
 
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
 interface UpdateModalProps {
   isDarkMode: boolean;
 }
 
 export function UpdateModal({ isDarkMode }: UpdateModalProps) {
-  const { updateInfo, checking, checkForUpdate, downloadUpdate } = useAppUpdate();
+  const { updateInfo, checking, downloading, downloadProgress, checkForUpdate, downloadUpdate } = useAppUpdate();
   const [showModal, setShowModal] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
@@ -108,7 +186,6 @@ export function UpdateModal({ isDarkMode }: UpdateModalProps) {
 
   const handleUpdate = () => {
     downloadUpdate();
-    setShowModal(false);
   };
 
   if (!showModal || !updateInfo) return null;
@@ -154,11 +231,29 @@ export function UpdateModal({ isDarkMode }: UpdateModalProps) {
             </p>
           </div>
 
+          {downloading && (
+            <div className="mb-4">
+              <div className={cn(
+                "h-2 rounded-full overflow-hidden",
+                isDarkMode ? "bg-[#3a3a3c]" : "bg-[#E5E5EA]"
+              )}>
+                <div 
+                  className="h-full bg-indigo-500 transition-all duration-300"
+                  style={{ width: `${downloadProgress}%` }}
+                />
+              </div>
+              <p className={cn("text-xs text-center mt-2", isDarkMode ? "text-slate-400" : "text-[#8E8E93]")}>
+                下载中... {downloadProgress}%
+              </p>
+            </div>
+          )}
+
           <div className="flex gap-3">
             <button
               onClick={handleDismiss}
+              disabled={downloading}
               className={cn(
-                "flex-1 py-3 rounded-xl text-sm font-medium transition-all duration-200 active:scale-95",
+                "flex-1 py-3 rounded-xl text-sm font-medium transition-all duration-200 active:scale-95 disabled:opacity-50",
                 isDarkMode ? "bg-[#3a3a3c] text-slate-300" : "bg-[#E5E5EA] text-[#3C3C43]"
               )}
             >
@@ -166,9 +261,10 @@ export function UpdateModal({ isDarkMode }: UpdateModalProps) {
             </button>
             <button
               onClick={handleUpdate}
-              className="flex-1 py-3 rounded-xl text-sm font-medium bg-indigo-500 text-white shadow-md shadow-indigo-500/30 transition-all duration-200 active:scale-95"
+              disabled={downloading}
+              className="flex-1 py-3 rounded-xl text-sm font-medium bg-indigo-500 text-white shadow-md shadow-indigo-500/30 transition-all duration-200 active:scale-95 disabled:opacity-50"
             >
-              立即更新
+              {downloading ? '下载中...' : '立即更新'}
             </button>
           </div>
         </div>

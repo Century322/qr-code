@@ -1438,7 +1438,7 @@ export default function App() {
       >
       <div className="max-w-6xl mx-auto space-y-8">
         
-        <div className="fixed top-0 left-0 right-0 z-40 px-4 md:px-8 bg-transparent safe-area-top">
+        <div className="fixed top-0 left-0 right-0 z-40 px-4 md:px-8 pt-4 bg-transparent">
           <div className={cn(
             "backdrop-blur-xl rounded-2xl shadow-lg shadow-black/10 p-3 flex items-center justify-between w-full",
             isDarkMode ? "bg-[#2c2c2e]/90 border border-[#3a3a3c]" : "bg-white/90 border border-[#E5E5EA]"
@@ -1487,14 +1487,14 @@ export default function App() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pt-20 pb-28">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 pt-24 pb-32">
           
           <div 
             ref={containerRef}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            className="lg:col-span-5 relative min-h-[calc(100vh-220px)] md:min-h-0 md:block touch-pan-y"
+            className="lg:col-span-5 relative md:block overflow-hidden"
           >
             
             {/* Step 1: Content Input */}
@@ -2080,7 +2080,7 @@ export default function App() {
             )}
 
             {/* Stepper Navigation */}
-            <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 safe-area-bottom z-50">
+            <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 pb-6 z-50">
                 <div className={cn(
                   "backdrop-blur-xl rounded-2xl shadow-lg shadow-black/10 p-3 flex items-center justify-between",
                   isDarkMode ? "bg-[#2c2c2e]/90 border border-[#3a3a3c]" : "bg-white/90 border border-[#E5E5EA]"
