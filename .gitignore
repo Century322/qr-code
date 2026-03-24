@@ -10,6 +10,7 @@ coverage/
 # 签名密钥库 - 不要上传到 GitHub！
 *.keystore
 keystore.txt
+keystore_base64.txt
 release.keystore
 
 # Android 构建文件
