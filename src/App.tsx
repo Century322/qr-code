@@ -3,13 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import QRCode from 'qrcode';
 import { Image as ImageIcon, FileCode2, Settings, Link as LinkIcon, Palette, LayoutGrid, Shapes, Sparkles, ChevronLeft, ChevronRight, X, Check } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { UpdateModal } from './components/UpdateModal';
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { Capacitor } from '@capacitor/core';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -68,15 +70,23 @@ function ColorPicker({ color, onChange, label, isDarkMode }: ColorPickerProps) {
   const [animationKey, setAnimationKey] = useState(0);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
-    setLocalColor(color);
-  }, [color]);
+  const getViewportDimensions = () => {
+    if (window.visualViewport) {
+      return {
+        width: window.visualViewport.width,
+        height: window.visualViewport.height
+      };
+    }
+    return {
+      width: window.innerWidth,
+      height: window.innerHeight
+    };
+  };
 
-  useEffect(() => {
-    if (isOpen && buttonRef.current) {
+  const updatePosition = useCallback(() => {
+    if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
+      const viewport = getViewportDimensions();
       
       const dropdownWidth = Math.max(rect.width, 280);
       const dropdownHeight = 280;
@@ -84,12 +94,12 @@ function ColorPicker({ color, onChange, label, isDarkMode }: ColorPickerProps) {
       let top = rect.bottom + 8;
       let left = rect.left;
       
-      if (top + dropdownHeight > viewportHeight - 20) {
+      if (top + dropdownHeight > viewport.height - 20) {
         top = rect.top - dropdownHeight - 8;
       }
       
-      if (left + dropdownWidth > viewportWidth - 20) {
-        left = viewportWidth - dropdownWidth - 20;
+      if (left + dropdownWidth > viewport.width - 20) {
+        left = viewport.width - dropdownWidth - 20;
       }
       
       if (left < 20) {
@@ -102,43 +112,46 @@ function ColorPicker({ color, onChange, label, isDarkMode }: ColorPickerProps) {
         width: dropdownWidth
       });
     }
-  }, [isOpen]);
+  }, []);
 
   useEffect(() => {
+    setLocalColor(color);
+  }, [color]);
+
+  useEffect(() => {
+    if (isOpen) {
+      updatePosition();
+    }
+  }, [isOpen, updatePosition]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    
     const handleScroll = () => {
-      if (isOpen && buttonRef.current) {
-        const rect = buttonRef.current.getBoundingClientRect();
-        const viewportWidth = window.innerWidth;
-        const viewportHeight = window.innerHeight;
-        
-        const dropdownWidth = Math.max(rect.width, 280);
-        const dropdownHeight = 280;
-        
-        let top = rect.bottom + 8;
-        let left = rect.left;
-        
-        if (top + dropdownHeight > viewportHeight - 20) {
-          top = rect.top - dropdownHeight - 8;
-        }
-        
-        if (left + dropdownWidth > viewportWidth - 20) {
-          left = viewportWidth - dropdownWidth - 20;
-        }
-        
-        if (left < 20) {
-          left = 20;
-        }
-        
-        setPosition({
-          top,
-          left,
-          width: dropdownWidth
-        });
+      updatePosition();
+    };
+    
+    const handleResize = () => {
+      updatePosition();
+    };
+    
+    window.addEventListener('scroll', handleScroll, true);
+    window.addEventListener('resize', handleResize);
+    
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleResize);
+      window.visualViewport.addEventListener('scroll', handleResize);
+    }
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true);
+      window.removeEventListener('resize', handleResize);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleResize);
+        window.visualViewport.removeEventListener('scroll', handleResize);
       }
     };
-    window.addEventListener('scroll', handleScroll, true);
-    return () => window.removeEventListener('scroll', handleScroll, true);
-  }, [isOpen]);
+  }, [isOpen, updatePosition]);
 
   const handleColorSelect = (newColor: string) => {
     setLocalColor(newColor);
@@ -313,31 +326,83 @@ function GradientTypeSelector({ value, onChange, isDarkMode }: GradientTypeSelec
   const [position, setPosition] = useState({ top: 0, left: 0, width: 0 });
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
-    if (isOpen && buttonRef.current) {
+  const getViewportDimensions = () => {
+    if (window.visualViewport) {
+      return {
+        width: window.visualViewport.width,
+        height: window.visualViewport.height
+      };
+    }
+    return {
+      width: window.innerWidth,
+      height: window.innerHeight
+    };
+  };
+
+  const updatePosition = useCallback(() => {
+    if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
+      const viewport = getViewportDimensions();
+      const dropdownHeight = 120;
+      
+      let top = rect.bottom + 8;
+      let left = rect.left;
+      const width = rect.width;
+      
+      if (top + dropdownHeight > viewport.height - 20) {
+        top = rect.top - dropdownHeight - 8;
+      }
+      
+      if (left + width > viewport.width - 20) {
+        left = viewport.width - width - 20;
+      }
+      
+      if (left < 20) {
+        left = 20;
+      }
+      
       setPosition({
-        top: rect.bottom + 8,
-        left: rect.left,
-        width: rect.width
+        top,
+        left,
+        width
       });
     }
-  }, [isOpen]);
+  }, []);
 
   useEffect(() => {
+    if (isOpen) {
+      updatePosition();
+    }
+  }, [isOpen, updatePosition]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    
     const handleScroll = () => {
-      if (isOpen && buttonRef.current) {
-        const rect = buttonRef.current.getBoundingClientRect();
-        setPosition({
-          top: rect.bottom + 8,
-          left: rect.left,
-          width: rect.width
-        });
+      updatePosition();
+    };
+    
+    const handleResize = () => {
+      updatePosition();
+    };
+    
+    window.addEventListener('scroll', handleScroll, true);
+    window.addEventListener('resize', handleResize);
+    
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleResize);
+      window.visualViewport.addEventListener('scroll', handleResize);
+    }
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true);
+      window.removeEventListener('resize', handleResize);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleResize);
+        window.visualViewport.removeEventListener('scroll', handleResize);
       }
     };
-    window.addEventListener('scroll', handleScroll, true);
-    return () => window.removeEventListener('scroll', handleScroll, true);
-  }, [isOpen]);
+  }, [isOpen, updatePosition]);
 
   const options = [
     { value: 'linear', label: '线性渐变' },
@@ -503,6 +568,10 @@ export default function App() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [themeTransition, setThemeTransition] = useState<'none' | 'exit'>('none');
   const [prevTheme, setPrevTheme] = useState<boolean | null>(null);
+  
+  const [safeAreaInsets, setSafeAreaInsets] = useState({ top: 0, bottom: 0, left: 0, right: 0 });
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [isNative, setIsNative] = useState(false);
 
   const qrDensity = matrix ? matrix.data.filter(d => d === 1).length / matrix.data.length : 0.5;
   
@@ -534,6 +603,84 @@ export default function App() {
       isDarkMode,
     });
   }, [text, colorMode, gradientType, fgColor, fgColor2, bgColor, selectedDots, eyeOuterStyle, eyeInnerStyle, enableCamo, camoSeed, qrScale, errorCorrection, isDarkMode]);
+
+  useEffect(() => {
+    const native = Capacitor.isNativePlatform();
+    setIsNative(native);
+    
+    if (native) {
+      const updateSafeArea = () => {
+        const computedStyle = getComputedStyle(document.documentElement);
+        const top = parseInt(computedStyle.getPropertyValue('--safe-area-top') || '0', 10);
+        const bottom = parseInt(computedStyle.getPropertyValue('--safe-area-bottom') || '0', 10);
+        const left = parseInt(computedStyle.getPropertyValue('--safe-area-left') || '0', 10);
+        const right = parseInt(computedStyle.getPropertyValue('--safe-area-right') || '0', 10);
+        
+        const cssTop = parseInt(getComputedStyle(document.body).paddingTop || '0', 10);
+        const cssBottom = parseInt(getComputedStyle(document.body).paddingBottom || '0', 10);
+        
+        setSafeAreaInsets({
+          top: top || cssTop || 24,
+          bottom: bottom || cssBottom || 24,
+          left: left || 0,
+          right: right || 0
+        });
+      };
+      
+      updateSafeArea();
+      window.addEventListener('resize', updateSafeArea);
+      
+      return () => {
+        window.removeEventListener('resize', updateSafeArea);
+      };
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isNative) return;
+    
+    const handleResize = () => {
+      if (window.visualViewport) {
+        const viewportHeight = window.visualViewport.height;
+        const windowHeight = window.innerHeight;
+        const keyboardH = Math.max(0, windowHeight - viewportHeight);
+        setKeyboardHeight(keyboardH);
+      }
+    };
+    
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleResize);
+      window.visualViewport.addEventListener('scroll', handleResize);
+    }
+    
+    return () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleResize);
+        window.visualViewport.removeEventListener('scroll', handleResize);
+      }
+    };
+  }, [isNative]);
+
+  const updateStatusBar = useCallback(async (dark: boolean) => {
+    if (!isNative) return;
+    
+    try {
+      await StatusBar.setStyle({
+        style: dark ? Style.Dark : Style.Light
+      });
+      
+      const bgColor = dark ? '#1c1c1e' : '#F2F2F7';
+      await StatusBar.setBackgroundColor({
+        color: bgColor
+      });
+    } catch (e) {
+      console.log('StatusBar not available:', e);
+    }
+  }, [isNative]);
+
+  useEffect(() => {
+    updateStatusBar(isDarkMode);
+  }, [isDarkMode, updateStatusBar]);
 
   const random = (seed: number) => {
     const x = Math.sin(seed++) * 10000;
@@ -1322,8 +1469,10 @@ export default function App() {
     const diffX = Math.abs(touchStartX.current - touchEndX.current);
     const diffY = Math.abs(touchStartY.current - touchEndY.current);
     
-    if (diffX > 10 || diffY > 10) {
+    if (diffX > 10 && diffX > diffY * 1.5) {
       isSwiping.current = true;
+    } else if (diffY > diffX) {
+      isSwiping.current = false;
     }
   };
 
@@ -1437,10 +1586,14 @@ export default function App() {
         }}
       >
         {/* 顶部固定区域 - 包含安全区域 */}
-        <div className="fixed top-0 left-0 right-0 z-40 px-4 md:px-8 pt-[env(safe-area-inset-top)] bg-transparent">
+        <div 
+          className="fixed top-0 left-0 right-0 z-40 px-4 md:px-8 bg-transparent"
+          style={{ paddingTop: `${safeAreaInsets.top}px` }}
+        >
           <div className={cn(
             "backdrop-blur-xl rounded-2xl shadow-lg shadow-black/10 p-3 flex items-center justify-between w-full max-w-6xl mx-auto",
-            isDarkMode ? "bg-[#2c2c2e]/90 border border-[#3a3a3c]" : "bg-white/90 border border-[#E5E5EA]"
+            isDarkMode ? "bg-[#2c2c2e]/90 border border-[#3a3a3c]" : "bg-white/90 border border-[#E5E5EA]",
+            !CSS.supports('backdrop-filter', 'blur(20px)') && (isDarkMode ? "bg-[#2c2c2e]" : "bg-white")
           )}>
           <div className="hidden md:block">
             <h1 className={cn("text-3xl font-bold tracking-tight", isDarkMode ? "text-white" : "text-[#1C1C1E]")}>QR code</h1>
@@ -1487,7 +1640,13 @@ export default function App() {
         </div>
 
         {/* 中间可滚动内容区域 - 添加顶部和底部padding避免被遮挡 */}
-        <div className="px-4 md:px-8 py-4 mt-[80px] mb-[80px] md:mt-0 md:mb-0">
+        <div 
+          className="px-4 md:px-8 py-4 md:mt-0 md:mb-0"
+          style={{ 
+            marginTop: `${80 + safeAreaInsets.top}px`,
+            marginBottom: `${keyboardHeight > 0 ? keyboardHeight : 80 + safeAreaInsets.bottom}px`
+          }}
+        >
           <div className="max-w-6xl mx-auto">
             <div 
               ref={containerRef}
@@ -1873,7 +2032,10 @@ export default function App() {
               <button
                 ref={floatBtnRef}
                 className="md:hidden fixed z-[55] group touch-none select-none"
-                style={{ bottom: '6rem', right: '1rem' }}
+                style={{ 
+                  bottom: `${96 + safeAreaInsets.bottom}px`, 
+                  right: '1rem' 
+                }}
                 onMouseDown={(e) => {
                   e.preventDefault();
                   isDragging.current = false;
@@ -2084,10 +2246,14 @@ export default function App() {
       </div>
 
       {/* 底部导航 - 固定定位 */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-4 md:px-8 pb-[env(safe-area-inset-bottom)] bg-transparent">
+        <div 
+          className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-4 md:px-8 bg-transparent"
+          style={{ paddingBottom: `${safeAreaInsets.bottom}px` }}
+        >
           <div className={cn(
             "backdrop-blur-xl rounded-2xl shadow-lg shadow-black/10 p-3 flex items-center justify-between w-full max-w-6xl mx-auto",
-            isDarkMode ? "bg-[#2c2c2e]/90 border border-[#3a3a3c]" : "bg-white/90 border border-[#E5E5EA]"
+            isDarkMode ? "bg-[#2c2c2e]/90 border border-[#3a3a3c]" : "bg-white/90 border border-[#E5E5EA]",
+            !CSS.supports('backdrop-filter', 'blur(20px)') && (isDarkMode ? "bg-[#2c2c2e]" : "bg-white")
           )}>
             <button
               onClick={handlePrevStep}

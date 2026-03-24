@@ -19,8 +19,8 @@ const config: CapacitorConfig = {
       splashImmersive: true
     },
     StatusBar: {
-      style: 'Dark',
-      backgroundColor: '#4f46e5'
+      style: 'Light',
+      backgroundColor: '#F2F2F7'
     }
   },
   android: {
