@@ -26,7 +26,7 @@ function useAppUpdate() {
     setError(null);
 
     try {
-      const response = await fetch('https://api.github.com/repos/YOUR_USERNAME/YOUR_REPO/releases/latest');
+      const response = await fetch('https://api.github.com/repos/Century322/qr-code/releases/latest');
       
       if (!response.ok) {
         throw new Error('无法检查更新');
