@@ -1427,7 +1427,7 @@ export default function App() {
       <div 
         key={isDarkMode ? 'dark' : 'light'}
         className={cn(
-          "min-h-screen font-sans flex flex-col",
+          "min-h-screen font-sans",
           isDarkMode 
             ? "bg-[#1c1c1e] text-white" 
             : "bg-[#F2F2F7] text-[#1C1C1E]"
@@ -1436,8 +1436,8 @@ export default function App() {
           animation: themeTransition === 'exit' ? 'themeSlideIn 0.4s ease-out forwards' : undefined
         }}
       >
-        {/* 顶部固定区域 */}
-        <div className="flex-shrink-0 px-4 md:px-8 pt-4 pb-2 z-40">
+        {/* 顶部固定区域 - 包含安全区域 */}
+        <div className="fixed top-0 left-0 right-0 z-40 px-4 md:px-8 pt-[env(safe-area-inset-top)] bg-transparent">
           <div className={cn(
             "backdrop-blur-xl rounded-2xl shadow-lg shadow-black/10 p-3 flex items-center justify-between w-full max-w-6xl mx-auto",
             isDarkMode ? "bg-[#2c2c2e]/90 border border-[#3a3a3c]" : "bg-white/90 border border-[#E5E5EA]"
@@ -1486,8 +1486,8 @@ export default function App() {
           </div>
         </div>
 
-        {/* 中间可滚动内容区域 */}
-        <div className="flex-1 overflow-y-auto px-4 md:px-8 py-4">
+        {/* 中间可滚动内容区域 - 添加顶部和底部padding避免被遮挡 */}
+        <div className="px-4 md:px-8 py-4 mt-[80px] mb-[80px] md:mt-0 md:mb-0">
           <div className="max-w-6xl mx-auto">
             <div 
               ref={containerRef}
@@ -2079,63 +2079,63 @@ export default function App() {
               </div>
             )}
 
-            {/* Stepper Navigation */}
-            <div className="md:hidden flex-shrink-0 px-4 md:px-8 pt-2 pb-4 z-50">
-              <div className={cn(
-                "backdrop-blur-xl rounded-2xl shadow-lg shadow-black/10 p-3 flex items-center justify-between w-full max-w-6xl mx-auto",
-                isDarkMode ? "bg-[#2c2c2e]/90 border border-[#3a3a3c]" : "bg-white/90 border border-[#E5E5EA]"
-              )}>
-                <button
-                  onClick={handlePrevStep}
-                  disabled={currentStep === 0}
-                  className={cn(
-                    "flex items-center gap-1.5 px-5 py-2.5 rounded-xl font-medium transition-all duration-200",
-                    currentStep === 0 
-                      ? isDarkMode ? "text-slate-600 cursor-not-allowed" : "text-[#C7C7CC] cursor-not-allowed"
-                      : isDarkMode 
-                        ? "bg-[#3a3a3c] text-slate-300 active:scale-95 active:bg-[#48484a]"
-                        : "bg-[#E5E5EA] text-[#3C3C43] active:scale-95 active:bg-[#D1D1D6]"
-                  )}
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                  <span className="text-sm">上一步</span>
-                </button>
-                
-                <div className="flex items-center gap-1.5">
-                  {steps.map((_, index) => (
-                    <div
-                      key={index}
-                      className={cn(
-                        "rounded-full transition-all duration-300",
-                        index === currentStep 
-                          ? "w-2 h-2 bg-indigo-500" 
-                          : isDarkMode ? "w-1.5 h-1.5 bg-slate-600" : "w-1.5 h-1.5 bg-[#C7C7CC]"
-                      )}
-                    />
-                  ))}
-                </div>
-                
-                <button
-                  onClick={handleNextStep}
-                  disabled={currentStep === steps.length - 1}
-                  className={cn(
-                    "flex items-center gap-1.5 px-5 py-2.5 rounded-xl font-medium transition-all duration-200",
-                    currentStep === steps.length - 1 
-                      ? isDarkMode ? "text-slate-600 cursor-not-allowed" : "text-[#C7C7CC] cursor-not-allowed"
-                      : "bg-indigo-500 text-white shadow-md shadow-indigo-500/30 active:scale-95 active:bg-indigo-600"
-                  )}
-                >
-                  <span className="text-sm">下一步</span>
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
           </div>
         </div>
       </div>
-    </div>
-    <UpdateModal isDarkMode={isDarkMode} />
+
+      {/* 底部导航 - 固定定位 */}
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-4 md:px-8 pb-[env(safe-area-inset-bottom)] bg-transparent">
+          <div className={cn(
+            "backdrop-blur-xl rounded-2xl shadow-lg shadow-black/10 p-3 flex items-center justify-between w-full max-w-6xl mx-auto",
+            isDarkMode ? "bg-[#2c2c2e]/90 border border-[#3a3a3c]" : "bg-white/90 border border-[#E5E5EA]"
+          )}>
+            <button
+              onClick={handlePrevStep}
+              disabled={currentStep === 0}
+              className={cn(
+                "flex items-center gap-1.5 px-5 py-2.5 rounded-xl font-medium transition-all duration-200",
+                currentStep === 0 
+                  ? isDarkMode ? "text-slate-600 cursor-not-allowed" : "text-[#C7C7CC] cursor-not-allowed"
+                  : isDarkMode 
+                    ? "bg-[#3a3a3c] text-slate-300 active:scale-95 active:bg-[#48484a]"
+                    : "bg-[#E5E5EA] text-[#3C3C43] active:scale-95 active:bg-[#D1D1D6]"
+              )}
+            >
+              <ChevronLeft className="w-5 h-5" />
+              <span className="text-sm">上一步</span>
+            </button>
+            
+            <div className="flex items-center gap-1.5">
+              {steps.map((_, index) => (
+                <div
+                  key={index}
+                  className={cn(
+                    "rounded-full transition-all duration-300",
+                    index === currentStep 
+                      ? "w-2 h-2 bg-indigo-500" 
+                      : isDarkMode ? "w-1.5 h-1.5 bg-slate-600" : "w-1.5 h-1.5 bg-[#C7C7CC]"
+                  )}
+                />
+              ))}
+            </div>
+            
+            <button
+              onClick={handleNextStep}
+              disabled={currentStep === steps.length - 1}
+              className={cn(
+                "flex items-center gap-1.5 px-5 py-2.5 rounded-xl font-medium transition-all duration-200",
+                currentStep === steps.length - 1 
+                  ? isDarkMode ? "text-slate-600 cursor-not-allowed" : "text-[#C7C7CC] cursor-not-allowed"
+                  : "bg-indigo-500 text-white shadow-md shadow-indigo-500/30 active:scale-95 active:bg-indigo-600"
+              )}
+            >
+              <span className="text-sm">下一步</span>
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      </div>
+      <UpdateModal isDarkMode={isDarkMode} />
     </>
   );
 }
