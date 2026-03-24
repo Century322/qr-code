@@ -37,11 +37,27 @@ jobs:
       - name: Build web app
         run: npm run build
 
+      - name: Debug - Check dist
+        run: |
+          echo "=== dist/index.html ==="
+          cat dist/index.html
+          echo ""
+          echo "=== dist/assets ==="
+          ls -la dist/assets/
+
       - name: Clean old assets
         run: rm -rf android/app/src/main/assets/public
 
       - name: Sync Capacitor
         run: npx cap sync android
+
+      - name: Debug - Check Android assets
+        run: |
+          echo "=== Android assets/public/index.html ==="
+          cat android/app/src/main/assets/public/index.html
+          echo ""
+          echo "=== Android assets/public/assets ==="
+          ls -la android/app/src/main/assets/public/assets/
 
       - name: Decode Keystore
         env:
