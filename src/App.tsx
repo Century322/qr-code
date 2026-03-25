@@ -1602,11 +1602,11 @@ export default function App() {
             "fixed top-0 left-0 right-0 z-40",
             isDarkMode ? "bg-[#1c1c1e]" : "bg-[#F2F2F7]"
           )}
-          style={{ paddingTop: `${safeAreaInsets.top}px` }}
+          style={{ paddingTop: `${safeAreaInsets.top + 8}px` }}
         >
           <div className={cn(
-            "p-3 flex items-center justify-between w-full max-w-6xl mx-auto",
-            isDarkMode ? "bg-[#1c1c1e]" : "bg-[#F2F2F7]"
+            "px-4 py-3 flex items-center justify-between w-full max-w-6xl mx-auto rounded-2xl mx-4",
+            isDarkMode ? "bg-[#2c2c2e]" : "bg-white shadow-sm"
           )}>
           <div className="hidden md:block">
             <h1 className={cn("text-3xl font-bold tracking-tight", isDarkMode ? "text-white" : "text-[#1C1C1E]")}>QR code</h1>
@@ -1654,32 +1654,31 @@ export default function App() {
 
         {/* 中间可滚动内容区域 - 添加顶部和底部padding避免被遮挡 */}
         <div 
+          ref={containerRef}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
           className="px-4 md:px-8 py-4 overflow-y-auto"
           style={{ 
-            marginTop: `${56 + safeAreaInsets.top}px`,
-            marginBottom: `${isKeyboardVisible ? keyboardHeight : 72 + safeAreaInsets.bottom}px`,
-            height: `calc(100vh - ${56 + safeAreaInsets.top}px - ${isKeyboardVisible ? keyboardHeight : 72 + safeAreaInsets.bottom}px)`,
+            marginTop: `${64 + safeAreaInsets.top}px`,
+            marginBottom: `${isKeyboardVisible ? keyboardHeight : 80 + safeAreaInsets.bottom}px`,
+            height: `calc(100vh - ${64 + safeAreaInsets.top}px - ${isKeyboardVisible ? keyboardHeight : 80 + safeAreaInsets.bottom}px)`,
             WebkitOverflowScrolling: 'touch'
           }}
         >
-          <div className="max-w-6xl mx-auto">
-            <div 
-              ref={containerRef}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-              className="grid grid-cols-1 lg:grid-cols-12 gap-4"
-            >
+          <div className="max-w-6xl mx-auto h-full">
+            {/* 内容卡片容器 - 固定高度，相对定位 */}
+            <div className="relative h-full min-h-[400px]">
             
             {/* Step 1: Content Input */}
             <div className={cn(
-              "backdrop-blur-xl p-6 rounded-3xl shadow-lg shadow-black/5 transition-all duration-200 ease-out",
+              "absolute inset-0 backdrop-blur-xl p-6 rounded-3xl shadow-lg shadow-black/5 transition-all duration-200 ease-out",
               isDarkMode ? "bg-[#2c2c2e] border border-[#3a3a3c]" : "bg-white border border-[#E5E5EA]",
               currentStep === 0 
-                ? cn("flex flex-col justify-center", 
-                    isAnimating ? (slideDirection === 'left' ? "opacity-0 scale-95 translate-x-8" : "opacity-0 scale-95 -translate-x-8") : "opacity-100 scale-100 translate-x-0"
+                ? cn("flex flex-col justify-center opacity-100 scale-100 translate-x-0", 
+                    isAnimating && (slideDirection === 'left' ? "opacity-0 scale-95 translate-x-8" : "opacity-0 scale-95 -translate-x-8")
                   ) 
-                : "hidden md:block"
+                : "hidden md:flex"
             )}>
               <div>
                 <label className={cn("block text-sm font-medium mb-3", isDarkMode ? "text-slate-300" : "text-[#3C3C43]")}>
@@ -1702,13 +1701,13 @@ export default function App() {
 
             {/* Step 2: Colors - 优化布局 */}
             <div className={cn(
-              "backdrop-blur-xl rounded-3xl shadow-lg shadow-black/5 transition-all duration-300 ease-out",
+              "absolute inset-0 backdrop-blur-xl rounded-3xl shadow-lg shadow-black/5 transition-all duration-300 ease-out overflow-y-auto",
               isDarkMode ? "bg-[#2c2c2e] border border-[#3a3a3c]" : "bg-white border border-[#E5E5EA]",
               currentStep === 1 
-                ? cn("flex flex-col",
-                    isAnimating ? (slideDirection === 'left' ? "opacity-0 scale-95 translate-x-8" : "opacity-0 scale-95 -translate-x-8") : "opacity-100 scale-100 translate-x-0"
+                ? cn("flex flex-col opacity-100 scale-100 translate-x-0",
+                    isAnimating && (slideDirection === 'left' ? "opacity-0 scale-95 translate-x-8" : "opacity-0 scale-95 -translate-x-8")
                   ) 
-                : "hidden md:block"
+                : "hidden md:flex"
             )}>
               {/* 纯色/渐变色切换 - 移到最上面 */}
               <div className="p-6 pb-0">
@@ -1803,13 +1802,13 @@ export default function App() {
 
             {/* Step 3: Dots Pattern */}
             <div className={cn(
-              "backdrop-blur-xl p-6 rounded-3xl shadow-lg shadow-black/5 transition-all duration-300 ease-out flex flex-col",
+              "absolute inset-0 backdrop-blur-xl p-6 rounded-3xl shadow-lg shadow-black/5 transition-all duration-300 ease-out flex flex-col overflow-y-auto",
               isDarkMode ? "bg-[#2c2c2e] border border-[#3a3a3c]" : "bg-white border border-[#E5E5EA]",
               currentStep === 2 
-                ? cn("",
-                    isAnimating ? (slideDirection === 'left' ? "opacity-0 scale-95 translate-x-8" : "opacity-0 scale-95 -translate-x-8") : "opacity-100 scale-100 translate-x-0"
+                ? cn("opacity-100 scale-100 translate-x-0",
+                    isAnimating && (slideDirection === 'left' ? "opacity-0 scale-95 translate-x-8" : "opacity-0 scale-95 -translate-x-8")
                   ) 
-                : "hidden md:block"
+                : "hidden md:flex"
             )}>
               <div className="space-y-4 pt-2">
                 <div>
@@ -1871,13 +1870,13 @@ export default function App() {
 
             {/* Step 4: Eyes Pattern */}
             <div className={cn(
-              "backdrop-blur-xl p-6 rounded-3xl shadow-lg shadow-black/5 transition-all duration-300 ease-out flex flex-col",
+              "absolute inset-0 backdrop-blur-xl p-6 rounded-3xl shadow-lg shadow-black/5 transition-all duration-300 ease-out flex flex-col overflow-y-auto",
               isDarkMode ? "bg-[#2c2c2e] border border-[#3a3a3c]" : "bg-white border border-[#E5E5EA]",
               currentStep === 3 
-                ? cn("",
-                    isAnimating ? (slideDirection === 'left' ? "opacity-0 scale-95 translate-x-8" : "opacity-0 scale-95 -translate-x-8") : "opacity-100 scale-100 translate-x-0"
+                ? cn("opacity-100 scale-100 translate-x-0",
+                    isAnimating && (slideDirection === 'left' ? "opacity-0 scale-95 translate-x-8" : "opacity-0 scale-95 -translate-x-8")
                   ) 
-                : "hidden md:block"
+                : "hidden md:flex"
             )}>
               <div className="space-y-5 pt-2">
                 <div>
@@ -1940,13 +1939,13 @@ export default function App() {
 
             {/* Step 5: Preview & Export */}
             <div className={cn(
-              "backdrop-blur-xl p-6 rounded-3xl shadow-lg shadow-black/5 transition-all duration-300 ease-out flex flex-col",
+              "absolute inset-0 backdrop-blur-xl p-6 rounded-3xl shadow-lg shadow-black/5 transition-all duration-300 ease-out flex flex-col overflow-y-auto",
               isDarkMode ? "bg-[#2c2c2e] border border-[#3a3a3c]" : "bg-white border border-[#E5E5EA]",
               currentStep === 4 
-                ? cn("overflow-y-auto",
-                    isAnimating ? (slideDirection === 'left' ? "opacity-0 scale-95 translate-x-8" : "opacity-0 scale-95 -translate-x-8") : "opacity-100 scale-100 translate-x-0"
+                ? cn("opacity-100 scale-100 translate-x-0",
+                    isAnimating && (slideDirection === 'left' ? "opacity-0 scale-95 translate-x-8" : "opacity-0 scale-95 -translate-x-8")
                   ) 
-                : "hidden md:block"
+                : "hidden md:flex"
             )}>
               <div className="space-y-5 pt-2">
                 <div className={cn(
@@ -2048,51 +2047,12 @@ export default function App() {
                 ref={floatBtnRef}
                 className="md:hidden fixed z-[55] group touch-none select-none"
                 style={{ 
-                  bottom: `${80 + safeAreaInsets.bottom}px`, 
+                  bottom: `${88 + safeAreaInsets.bottom}px`, 
                   right: '1rem' 
                 }}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  isDragging.current = false;
-                  const btn = e.currentTarget;
-                  const startRect = btn.getBoundingClientRect();
-                  const startX = startRect.left;
-                  const startY = startRect.top;
-                  const btnWidth = startRect.width;
-                  const btnHeight = startRect.height;
-
-                  const handleMouseMove = (moveEvent: MouseEvent) => {
-                    const deltaX = moveEvent.clientX - e.clientX;
-                    const deltaY = moveEvent.clientY - e.clientY;
-                    
-                    if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
-                      isDragging.current = true;
-                    }
-                    
-                    if (isDragging.current) {
-                      let newX = startX + deltaX;
-                      let newY = startY + deltaY;
-                      newX = Math.max(0, Math.min(newX, window.innerWidth - btnWidth));
-                      newY = Math.max(0, Math.min(newY, window.innerHeight - btnHeight));
-                      btn.style.left = `${newX}px`;
-                      btn.style.top = `${newY}px`;
-                      btn.style.bottom = 'auto';
-                      btn.style.right = 'auto';
-                    }
-                  };
-
-                  const handleMouseUp = () => {
-                    document.removeEventListener('mousemove', handleMouseMove);
-                    document.removeEventListener('mouseup', handleMouseUp);
-                    if (!isDragging.current) {
-                      setShowPreviewModal(true);
-                    }
-                  };
-
-                  document.addEventListener('mousemove', handleMouseMove);
-                  document.addEventListener('mouseup', handleMouseUp);
-                }}
                 onTouchStart={(e) => {
+                  e.stopPropagation();
+                  isDragging.current = false;
                   const btn = e.currentTarget;
                   const startRect = btn.getBoundingClientRect();
                   const startX = startRect.left;
@@ -2114,6 +2074,7 @@ export default function App() {
                     
                     if (isDragging.current) {
                       moveEvent.preventDefault();
+                      moveEvent.stopPropagation();
                       let newX = startX + deltaX;
                       let newY = startY + deltaY;
                       newX = Math.max(0, Math.min(newX, window.innerWidth - btnWidth));
@@ -2125,9 +2086,11 @@ export default function App() {
                     }
                   };
 
-                  const handleTouchEnd = () => {
+                  const handleTouchEnd = (endEvent: TouchEvent) => {
+                    endEvent.stopPropagation();
                     document.removeEventListener('touchmove', handleTouchMove);
                     document.removeEventListener('touchend', handleTouchEnd);
+                    
                     if (!isDragging.current) {
                       setShowPreviewModal(true);
                     }
@@ -2266,11 +2229,11 @@ export default function App() {
             "md:hidden fixed bottom-0 left-0 right-0 z-50",
             isDarkMode ? "bg-[#1c1c1e]" : "bg-[#F2F2F7]"
           )}
-          style={{ paddingBottom: `${safeAreaInsets.bottom}px` }}
+          style={{ paddingBottom: `${safeAreaInsets.bottom + 8}px` }}
         >
           <div className={cn(
-            "p-3 flex items-center justify-between w-full max-w-6xl mx-auto",
-            isDarkMode ? "bg-[#1c1c1e]" : "bg-[#F2F2F7]"
+            "mx-4 px-4 py-3 flex items-center justify-between w-full max-w-6xl mx-auto rounded-2xl",
+            isDarkMode ? "bg-[#2c2c2e]" : "bg-white shadow-sm"
           )}>
             <button
               onClick={handlePrevStep}
