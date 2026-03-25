@@ -569,9 +569,10 @@ export default function App() {
   const [themeTransition, setThemeTransition] = useState<'none' | 'exit'>('none');
   const [prevTheme, setPrevTheme] = useState<boolean | null>(null);
   
-  const [safeAreaInsets, setSafeAreaInsets] = useState({ top: 0, bottom: 0, left: 0, right: 0 });
+  const [safeAreaInsets, setSafeAreaInsets] = useState({ top: 24, bottom: 24, left: 0, right: 0 });
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [isNative, setIsNative] = useState(false);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   const qrDensity = matrix ? matrix.data.filter(d => d === 1).length / matrix.data.length : 0.5;
   
@@ -611,23 +612,32 @@ export default function App() {
     if (native) {
       const updateSafeArea = () => {
         const computedStyle = getComputedStyle(document.documentElement);
-        const top = parseInt(computedStyle.getPropertyValue('--safe-area-top') || '0', 10);
-        const bottom = parseInt(computedStyle.getPropertyValue('--safe-area-bottom') || '0', 10);
-        const left = parseInt(computedStyle.getPropertyValue('--safe-area-left') || '0', 10);
-        const right = parseInt(computedStyle.getPropertyValue('--safe-area-right') || '0', 10);
+        const cssTop = parseInt(computedStyle.getPropertyValue('--safe-area-top') || '0', 10);
+        const cssBottom = parseInt(computedStyle.getPropertyValue('--safe-area-bottom') || '0', 10);
+        const cssLeft = parseInt(computedStyle.getPropertyValue('--safe-area-left') || '0', 10);
+        const cssRight = parseInt(computedStyle.getPropertyValue('--safe-area-right') || '0', 10);
         
-        const cssTop = parseInt(getComputedStyle(document.body).paddingTop || '0', 10);
-        const cssBottom = parseInt(getComputedStyle(document.body).paddingBottom || '0', 10);
+        const bodyStyle = getComputedStyle(document.body);
+        const bodyTop = parseInt(bodyStyle.paddingTop || '0', 10);
+        const bodyBottom = parseInt(bodyStyle.paddingBottom || '0', 10);
+        
+        const finalTop = cssTop || bodyTop || 24;
+        const finalBottom = cssBottom || bodyBottom || 24;
         
         setSafeAreaInsets({
-          top: top || cssTop || 24,
-          bottom: bottom || cssBottom || 24,
-          left: left || 0,
-          right: right || 0
+          top: finalTop,
+          bottom: finalBottom,
+          left: cssLeft || 0,
+          right: cssRight || 0
         });
       };
       
       updateSafeArea();
+      
+      setTimeout(updateSafeArea, 100);
+      setTimeout(updateSafeArea, 300);
+      setTimeout(updateSafeArea, 500);
+      
       window.addEventListener('resize', updateSafeArea);
       
       return () => {
@@ -645,6 +655,7 @@ export default function App() {
         const windowHeight = window.innerHeight;
         const keyboardH = Math.max(0, windowHeight - viewportHeight);
         setKeyboardHeight(keyboardH);
+        setIsKeyboardVisible(keyboardH > 100);
       }
     };
     
@@ -1587,13 +1598,15 @@ export default function App() {
       >
         {/* 顶部固定区域 - 包含安全区域 */}
         <div 
-          className="fixed top-0 left-0 right-0 z-40 px-4 md:px-8 bg-transparent"
+          className={cn(
+            "fixed top-0 left-0 right-0 z-40",
+            isDarkMode ? "bg-[#1c1c1e]" : "bg-[#F2F2F7]"
+          )}
           style={{ paddingTop: `${safeAreaInsets.top}px` }}
         >
           <div className={cn(
-            "backdrop-blur-xl rounded-2xl shadow-lg shadow-black/10 p-3 flex items-center justify-between w-full max-w-6xl mx-auto",
-            isDarkMode ? "bg-[#2c2c2e]/90 border border-[#3a3a3c]" : "bg-white/90 border border-[#E5E5EA]",
-            !CSS.supports('backdrop-filter', 'blur(20px)') && (isDarkMode ? "bg-[#2c2c2e]" : "bg-white")
+            "p-3 flex items-center justify-between w-full max-w-6xl mx-auto",
+            isDarkMode ? "bg-[#1c1c1e]" : "bg-[#F2F2F7]"
           )}>
           <div className="hidden md:block">
             <h1 className={cn("text-3xl font-bold tracking-tight", isDarkMode ? "text-white" : "text-[#1C1C1E]")}>QR code</h1>
@@ -1641,10 +1654,12 @@ export default function App() {
 
         {/* 中间可滚动内容区域 - 添加顶部和底部padding避免被遮挡 */}
         <div 
-          className="px-4 md:px-8 py-4 md:mt-0 md:mb-0"
+          className="px-4 md:px-8 py-4 overflow-y-auto"
           style={{ 
-            marginTop: `${80 + safeAreaInsets.top}px`,
-            marginBottom: `${keyboardHeight > 0 ? keyboardHeight : 80 + safeAreaInsets.bottom}px`
+            marginTop: `${56 + safeAreaInsets.top}px`,
+            marginBottom: `${isKeyboardVisible ? keyboardHeight : 72 + safeAreaInsets.bottom}px`,
+            height: `calc(100vh - ${56 + safeAreaInsets.top}px - ${isKeyboardVisible ? keyboardHeight : 72 + safeAreaInsets.bottom}px)`,
+            WebkitOverflowScrolling: 'touch'
           }}
         >
           <div className="max-w-6xl mx-auto">
@@ -2028,12 +2043,12 @@ export default function App() {
             </div>
 
             {/* Floating Preview Button */}
-            {currentStep < 4 && (
+            {currentStep < 4 && !isKeyboardVisible && (
               <button
                 ref={floatBtnRef}
                 className="md:hidden fixed z-[55] group touch-none select-none"
                 style={{ 
-                  bottom: `${96 + safeAreaInsets.bottom}px`, 
+                  bottom: `${80 + safeAreaInsets.bottom}px`, 
                   right: '1rem' 
                 }}
                 onMouseDown={(e) => {
@@ -2247,13 +2262,15 @@ export default function App() {
 
       {/* 底部导航 - 固定定位 */}
         <div 
-          className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-4 md:px-8 bg-transparent"
+          className={cn(
+            "md:hidden fixed bottom-0 left-0 right-0 z-50",
+            isDarkMode ? "bg-[#1c1c1e]" : "bg-[#F2F2F7]"
+          )}
           style={{ paddingBottom: `${safeAreaInsets.bottom}px` }}
         >
           <div className={cn(
-            "backdrop-blur-xl rounded-2xl shadow-lg shadow-black/10 p-3 flex items-center justify-between w-full max-w-6xl mx-auto",
-            isDarkMode ? "bg-[#2c2c2e]/90 border border-[#3a3a3c]" : "bg-white/90 border border-[#E5E5EA]",
-            !CSS.supports('backdrop-filter', 'blur(20px)') && (isDarkMode ? "bg-[#2c2c2e]" : "bg-white")
+            "p-3 flex items-center justify-between w-full max-w-6xl mx-auto",
+            isDarkMode ? "bg-[#1c1c1e]" : "bg-[#F2F2F7]"
           )}>
             <button
               onClick={handlePrevStep}
