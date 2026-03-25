@@ -1468,12 +1468,20 @@ export default function App() {
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'BUTTON' || target.closest('button') || target.closest('input') || target.closest('textarea')) {
+      return;
+    }
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
     isSwiping.current = false;
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'BUTTON' || target.closest('button') || target.closest('input') || target.closest('textarea')) {
+      return;
+    }
     touchEndX.current = e.touches[0].clientX;
     touchEndY.current = e.touches[0].clientY;
     
@@ -1599,13 +1607,13 @@ export default function App() {
         {/* 顶部固定区域 - 包含安全区域 */}
         <div 
           className={cn(
-            "fixed top-0 left-0 right-0 z-40",
+            "fixed top-0 left-0 right-0 z-40 px-4",
             isDarkMode ? "bg-[#1c1c1e]" : "bg-[#F2F2F7]"
           )}
-          style={{ paddingTop: `${safeAreaInsets.top + 8}px` }}
+          style={{ paddingTop: `${safeAreaInsets.top + 12}px` }}
         >
           <div className={cn(
-            "px-4 py-3 flex items-center justify-between w-full max-w-6xl mx-auto rounded-2xl mx-4",
+            "px-4 py-3 flex items-center justify-between w-full max-w-6xl mx-auto rounded-2xl",
             isDarkMode ? "bg-[#2c2c2e]" : "bg-white shadow-sm"
           )}>
           <div className="hidden md:block">
@@ -1658,11 +1666,11 @@ export default function App() {
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          className="px-4 md:px-8 py-4 overflow-y-auto"
+          className="px-4 overflow-y-auto"
           style={{ 
-            marginTop: `${64 + safeAreaInsets.top}px`,
-            marginBottom: `${isKeyboardVisible ? keyboardHeight : 80 + safeAreaInsets.bottom}px`,
-            height: `calc(100vh - ${64 + safeAreaInsets.top}px - ${isKeyboardVisible ? keyboardHeight : 80 + safeAreaInsets.bottom}px)`,
+            marginTop: `${72 + safeAreaInsets.top}px`,
+            marginBottom: `${isKeyboardVisible ? keyboardHeight : 88 + safeAreaInsets.bottom}px`,
+            height: `calc(100vh - ${72 + safeAreaInsets.top}px - ${isKeyboardVisible ? keyboardHeight : 88 + safeAreaInsets.bottom}px)`,
             WebkitOverflowScrolling: 'touch'
           }}
         >
@@ -1675,9 +1683,7 @@ export default function App() {
               "absolute inset-0 backdrop-blur-xl p-6 rounded-3xl shadow-lg shadow-black/5 transition-all duration-200 ease-out",
               isDarkMode ? "bg-[#2c2c2e] border border-[#3a3a3c]" : "bg-white border border-[#E5E5EA]",
               currentStep === 0 
-                ? cn("flex flex-col justify-center opacity-100 scale-100 translate-x-0", 
-                    isAnimating && (slideDirection === 'left' ? "opacity-0 scale-95 translate-x-8" : "opacity-0 scale-95 -translate-x-8")
-                  ) 
+                ? "flex flex-col justify-center opacity-100" 
                 : "hidden md:flex"
             )}>
               <div>
@@ -1704,9 +1710,7 @@ export default function App() {
               "absolute inset-0 backdrop-blur-xl rounded-3xl shadow-lg shadow-black/5 transition-all duration-300 ease-out overflow-y-auto",
               isDarkMode ? "bg-[#2c2c2e] border border-[#3a3a3c]" : "bg-white border border-[#E5E5EA]",
               currentStep === 1 
-                ? cn("flex flex-col opacity-100 scale-100 translate-x-0",
-                    isAnimating && (slideDirection === 'left' ? "opacity-0 scale-95 translate-x-8" : "opacity-0 scale-95 -translate-x-8")
-                  ) 
+                ? "flex flex-col opacity-100" 
                 : "hidden md:flex"
             )}>
               {/* 纯色/渐变色切换 - 移到最上面 */}
@@ -1805,9 +1809,7 @@ export default function App() {
               "absolute inset-0 backdrop-blur-xl p-6 rounded-3xl shadow-lg shadow-black/5 transition-all duration-300 ease-out flex flex-col overflow-y-auto",
               isDarkMode ? "bg-[#2c2c2e] border border-[#3a3a3c]" : "bg-white border border-[#E5E5EA]",
               currentStep === 2 
-                ? cn("opacity-100 scale-100 translate-x-0",
-                    isAnimating && (slideDirection === 'left' ? "opacity-0 scale-95 translate-x-8" : "opacity-0 scale-95 -translate-x-8")
-                  ) 
+                ? "opacity-100" 
                 : "hidden md:flex"
             )}>
               <div className="space-y-4 pt-2">
@@ -1873,9 +1875,7 @@ export default function App() {
               "absolute inset-0 backdrop-blur-xl p-6 rounded-3xl shadow-lg shadow-black/5 transition-all duration-300 ease-out flex flex-col overflow-y-auto",
               isDarkMode ? "bg-[#2c2c2e] border border-[#3a3a3c]" : "bg-white border border-[#E5E5EA]",
               currentStep === 3 
-                ? cn("opacity-100 scale-100 translate-x-0",
-                    isAnimating && (slideDirection === 'left' ? "opacity-0 scale-95 translate-x-8" : "opacity-0 scale-95 -translate-x-8")
-                  ) 
+                ? "opacity-100" 
                 : "hidden md:flex"
             )}>
               <div className="space-y-5 pt-2">
@@ -1942,9 +1942,7 @@ export default function App() {
               "absolute inset-0 backdrop-blur-xl p-6 rounded-3xl shadow-lg shadow-black/5 transition-all duration-300 ease-out flex flex-col overflow-y-auto",
               isDarkMode ? "bg-[#2c2c2e] border border-[#3a3a3c]" : "bg-white border border-[#E5E5EA]",
               currentStep === 4 
-                ? cn("opacity-100 scale-100 translate-x-0",
-                    isAnimating && (slideDirection === 'left' ? "opacity-0 scale-95 translate-x-8" : "opacity-0 scale-95 -translate-x-8")
-                  ) 
+                ? "opacity-100" 
                 : "hidden md:flex"
             )}>
               <div className="space-y-5 pt-2">
@@ -2045,10 +2043,10 @@ export default function App() {
             {currentStep < 4 && !isKeyboardVisible && (
               <button
                 ref={floatBtnRef}
-                className="md:hidden fixed z-[55] group touch-none select-none"
+                className="md:hidden fixed z-[55] group select-none"
                 style={{ 
                   bottom: `${88 + safeAreaInsets.bottom}px`, 
-                  right: '1rem' 
+                  right: '1rem'
                 }}
                 onTouchStart={(e) => {
                   e.stopPropagation();
@@ -2091,9 +2089,11 @@ export default function App() {
                     document.removeEventListener('touchmove', handleTouchMove);
                     document.removeEventListener('touchend', handleTouchEnd);
                     
-                    if (!isDragging.current) {
-                      setShowPreviewModal(true);
-                    }
+                    setTimeout(() => {
+                      if (!isDragging.current) {
+                        setShowPreviewModal(true);
+                      }
+                    }, 50);
                   };
 
                   document.addEventListener('touchmove', handleTouchMove, { passive: false });
@@ -2226,13 +2226,13 @@ export default function App() {
       {/* 底部导航 - 固定定位 */}
         <div 
           className={cn(
-            "md:hidden fixed bottom-0 left-0 right-0 z-50",
+            "md:hidden fixed bottom-0 left-0 right-0 z-50 px-4",
             isDarkMode ? "bg-[#1c1c1e]" : "bg-[#F2F2F7]"
           )}
-          style={{ paddingBottom: `${safeAreaInsets.bottom + 8}px` }}
+          style={{ paddingBottom: `${safeAreaInsets.bottom + 12}px` }}
         >
           <div className={cn(
-            "mx-4 px-4 py-3 flex items-center justify-between w-full max-w-6xl mx-auto rounded-2xl",
+            "px-4 py-3 flex items-center justify-between w-full max-w-6xl mx-auto rounded-2xl",
             isDarkMode ? "bg-[#2c2c2e]" : "bg-white shadow-sm"
           )}>
             <button
