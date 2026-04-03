@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
   --safe-area-top: env(safe-area-inset-top);
@@ -9,43 +7,20 @@
   --safe-area-right: env(safe-area-inset-right);
 }
 
-.safe-area-top {
-  padding-top: env(safe-area-inset-top);
-}
-
-.safe-area-bottom {
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
 html {
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   scroll-behavior: smooth;
-  height: 100%;
-  overflow: hidden;
 }
 
 body {
   overscroll-behavior: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  height: 100%;
-  overflow: hidden;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-}
-
-#root {
-  height: 100%;
-  overflow: hidden;
 }
 
 * {
   -webkit-tap-highlight-color: transparent;
-  box-sizing: border-box;
 }
 
 input, textarea, select {
@@ -60,8 +35,6 @@ button {
 
 ::-webkit-scrollbar {
   display: none;
-  width: 0;
-  height: 0;
 }
 
 @supports (padding-top: env(safe-area-inset-top)) {
@@ -170,14 +143,4 @@ input[type="color"]::-webkit-color-swatch {
     transform: scale(1) translateX(0) rotate(0deg);
     opacity: 1;
   }
-}
-
-.overflow-y-auto {
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior-y: contain;
-}
-
-.overflow-y-auto::-webkit-scrollbar {
-  display: none;
 }
