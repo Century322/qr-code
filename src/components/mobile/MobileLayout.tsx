@@ -334,7 +334,7 @@ export function MobileLayout({ settings, matrix, canvasRef, onDownload, onThemeC
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          className="relative min-h-[calc(100vh-220px)] pt-24"
+          className="relative min-h-[calc(100vh-220px)] pt-24 pb-24"
         >
           {/* Step 1: Content Input */}
           <div className={cn(
@@ -342,7 +342,7 @@ export function MobileLayout({ settings, matrix, canvasRef, onDownload, onThemeC
             isDarkMode ? "bg-[#2c2c2e] border border-[#3a3a3c]" : "bg-white border border-[#E5E5EA]",
             currentStep === 0 
               ? cn("flex flex-col justify-center min-h-[calc(100vh-220px)]", 
-                  isAnimating ? (slideDirection === 'left' ? "opacity-0 scale-95 translate-x-8" : "opacity-0 scale-95 -translate-x-8") : "opacity-100 scale-100 translate-x-0"
+                  isAnimating ? (slideDirection === 'left' ? "opacity-0 scale-95 -translate-x-8" : "opacity-0 scale-95 translate-x-8") : "opacity-100 scale-100 translate-x-0"
                 ) 
               : "hidden"
           )}>
@@ -371,7 +371,7 @@ export function MobileLayout({ settings, matrix, canvasRef, onDownload, onThemeC
             isDarkMode ? "bg-[#2c2c2e] border border-[#3a3a3c]" : "bg-white border border-[#E5E5EA]",
             currentStep === 1 
               ? cn("flex flex-col min-h-[calc(100vh-220px)]",
-                  isAnimating ? (slideDirection === 'left' ? "opacity-0 scale-95 translate-x-8" : "opacity-0 scale-95 -translate-x-8") : "opacity-100 scale-100 translate-x-0"
+                  isAnimating ? (slideDirection === 'left' ? "opacity-0 scale-95 -translate-x-8" : "opacity-0 scale-95 translate-x-8") : "opacity-100 scale-100 translate-x-0"
                 ) 
               : "hidden"
           )}>
@@ -444,7 +444,7 @@ export function MobileLayout({ settings, matrix, canvasRef, onDownload, onThemeC
             isDarkMode ? "bg-[#2c2c2e] border border-[#3a3a3c]" : "bg-white border border-[#E5E5EA]",
             currentStep === 2 
               ? cn("min-h-[calc(100vh-220px)]",
-                  isAnimating ? (slideDirection === 'left' ? "opacity-0 scale-95 translate-x-8" : "opacity-0 scale-95 -translate-x-8") : "opacity-100 scale-100 translate-x-0"
+                  isAnimating ? (slideDirection === 'left' ? "opacity-0 scale-95 -translate-x-8" : "opacity-0 scale-95 translate-x-8") : "opacity-100 scale-100 translate-x-0"
                 ) 
               : "hidden"
           )}>
@@ -512,7 +512,7 @@ export function MobileLayout({ settings, matrix, canvasRef, onDownload, onThemeC
             isDarkMode ? "bg-[#2c2c2e] border border-[#3a3a3c]" : "bg-white border border-[#E5E5EA]",
             currentStep === 3 
               ? cn("min-h-[calc(100vh-220px)]",
-                  isAnimating ? (slideDirection === 'left' ? "opacity-0 scale-95 translate-x-8" : "opacity-0 scale-95 -translate-x-8") : "opacity-100 scale-100 translate-x-0"
+                  isAnimating ? (slideDirection === 'left' ? "opacity-0 scale-95 -translate-x-8" : "opacity-0 scale-95 translate-x-8") : "opacity-100 scale-100 translate-x-0"
                 ) 
               : "hidden"
           )}>
@@ -580,7 +580,7 @@ export function MobileLayout({ settings, matrix, canvasRef, onDownload, onThemeC
             isDarkMode ? "bg-[#2c2c2e] border border-[#3a3a3c]" : "bg-white border border-[#E5E5EA]",
             currentStep === 4 
               ? cn("min-h-[calc(100vh-220px)] overflow-y-auto",
-                  isAnimating ? (slideDirection === 'left' ? "opacity-0 scale-95 translate-x-8" : "opacity-0 scale-95 -translate-x-8") : "opacity-100 scale-100 translate-x-0"
+                  isAnimating ? (slideDirection === 'left' ? "opacity-0 scale-95 -translate-x-8" : "opacity-0 scale-95 translate-x-8") : "opacity-100 scale-100 translate-x-0"
                 ) 
               : "hidden"
           )}>
@@ -727,6 +727,7 @@ export function MobileLayout({ settings, matrix, canvasRef, onDownload, onThemeC
               }}
               onTouchStart={(e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 isDragging.current = false;
                 const btn = e.currentTarget;
                 const startRect = btn.getBoundingClientRect();
