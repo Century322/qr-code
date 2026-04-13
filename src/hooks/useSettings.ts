@@ -23,7 +23,8 @@ function loadSettings(): AppSettings {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
-      return JSON.parse(saved);
+      const parsed = JSON.parse(saved);
+      return { ...defaultSettings, ...parsed };
     }
   } catch (e) {
     console.error('Failed to load settings:', e);
@@ -40,51 +41,49 @@ function saveSettings(settings: AppSettings): void {
 }
 
 export function useSettings() {
-  const savedSettings = loadSettings();
-  
-  const [text, setText] = useState(savedSettings.text);
-  const [colorMode, setColorMode] = useState<'solid' | 'gradient'>(savedSettings.colorMode);
-  const [gradientType, setGradientType] = useState<'linear' | 'radial'>(savedSettings.gradientType);
-  const [fgColor, setFgColor] = useState(savedSettings.fgColor);
-  const [fgColor2, setFgColor2] = useState(savedSettings.fgColor2);
-  const [bgColor, setBgColor] = useState(savedSettings.bgColor);
-  const [selectedDots, setSelectedDots] = useState<string[]>(savedSettings.selectedDots);
-  const [eyeOuterStyle, setEyeOuterStyle] = useState(savedSettings.eyeOuterStyle);
-  const [eyeInnerStyle, setEyeInnerStyle] = useState(savedSettings.eyeInnerStyle);
-  const [enableCamo, setEnableCamo] = useState(savedSettings.enableCamo);
-  const [camoSeed, setCamoSeed] = useState(savedSettings.camoSeed);
-  const [qrScale, setQrScale] = useState(Math.max(0.4, savedSettings.qrScale));
-  const [errorCorrection, setErrorCorrection] = useState<'L' | 'M' | 'Q' | 'H'>(savedSettings.errorCorrection);
-  const [isDarkMode, setIsDarkMode] = useState(savedSettings.isDarkMode);
+  const [settings, setSettings] = useState<AppSettings>(loadSettings);
 
-  useEffect(() => {
-    saveSettings({
-      text,
-      colorMode,
-      gradientType,
-      fgColor,
-      fgColor2,
-      bgColor,
-      selectedDots,
-      eyeOuterStyle,
-      eyeInnerStyle,
-      enableCamo,
-      camoSeed,
-      qrScale,
-      errorCorrection,
-      isDarkMode,
-    });
-  }, [text, colorMode, gradientType, fgColor, fgColor2, bgColor, selectedDots, eyeOuterStyle, eyeInnerStyle, enableCamo, camoSeed, qrScale, errorCorrection, isDarkMode]);
+  const text = settings.text;
+  const colorMode = settings.colorMode;
+  const gradientType = settings.gradientType;
+  const fgColor = settings.fgColor;
+  const fgColor2 = settings.fgColor2;
+  const bgColor = settings.bgColor;
+  const selectedDots = settings.selectedDots;
+  const eyeOuterStyle = settings.eyeOuterStyle;
+  const eyeInnerStyle = settings.eyeInnerStyle;
+  const enableCamo = settings.enableCamo;
+  const camoSeed = settings.camoSeed;
+  const qrScale = settings.qrScale;
+  const errorCorrection = settings.errorCorrection;
+  const isDarkMode = settings.isDarkMode;
+
+  const setText = (v: string) => setSettings(s => ({ ...s, text: v }));
+  const setColorMode = (v: 'solid' | 'gradient') => setSettings(s => ({ ...s, colorMode: v }));
+  const setGradientType = (v: 'linear' | 'radial') => setSettings(s => ({ ...s, gradientType: v }));
+  const setFgColor = (v: string) => setSettings(s => ({ ...s, fgColor: v }));
+  const setFgColor2 = (v: string) => setSettings(s => ({ ...s, fgColor2: v }));
+  const setBgColor = (v: string) => setSettings(s => ({ ...s, bgColor: v }));
+  const setSelectedDots = (v: string[]) => setSettings(s => ({ ...s, selectedDots: v }));
+  const setEyeOuterStyle = (v: string) => setSettings(s => ({ ...s, eyeOuterStyle: v }));
+  const setEyeInnerStyle = (v: string) => setSettings(s => ({ ...s, eyeInnerStyle: v }));
+  const setEnableCamo = (v: boolean) => setSettings(s => ({ ...s, enableCamo: v }));
+  const setCamoSeed = (v: number) => setSettings(s => ({ ...s, camoSeed: v }));
+  const setQrScale = (v: number) => setSettings(s => ({ ...s, qrScale: Math.max(0.4, v) }));
+  const setErrorCorrection = (v: 'L' | 'M' | 'Q' | 'H') => setSettings(s => ({ ...s, errorCorrection: v }));
+  const setIsDarkMode = (v: boolean) => setSettings(s => ({ ...s, isDarkMode: v }));
 
   const toggleDotStyle = (id: string) => {
-    setSelectedDots(prev => {
-      if (prev.includes(id)) {
-        const next = prev.filter(s => s !== id);
-        return next.length > 0 ? next : ['square'];
-      }
-      return [...prev, id];
+    setSettings(s => {
+      const prev = s.selectedDots;
+      const next = prev.includes(id) ? prev.filter(st => st !== id) : [...prev, id];
+      return { ...s, selectedDots: next.length > 0 ? next : ['square'] };
     });
   };
+
+  useEffect(() => {
+    saveSettings(settings);
+  }, [settings]);
 
   return {
     text, setText,

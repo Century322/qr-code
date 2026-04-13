@@ -114,11 +114,6 @@ export function useQRCode(settings: {
       return gradient;
     };
 
-    const getCamoFill = () => {
-      if (colorMode === 'solid') return fgColor;
-      return gradient;
-    };
-
     const drawDot = (x: number, y: number, fill: string | CanvasGradient | null) => {
       const style = getDotStyleForPosition(x, y);
       const dx = x * scale;
@@ -404,7 +399,7 @@ export function useQRCode(settings: {
 
           const r = random(camoSeed + x * 1000 + y);
           if (r < qrDensity) {
-            drawDot(x, y, getCamoFill());
+            drawDot(x, y, getFill());
           }
         }
       }
@@ -428,8 +423,6 @@ export function useQRCode(settings: {
   return {
     matrix,
     canvasRef,
-    isEye,
-    getDotStyleForPosition,
     handleDownloadPNG,
   };
 }

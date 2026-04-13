@@ -72,6 +72,7 @@ function App() {
             matrix={matrix}
             canvasRef={canvasRef}
             onDownload={handleDownloadPNG}
+            onThemeChange={handleThemeChange}
           />
         ) : (
           <DesktopLayout 
@@ -79,6 +80,7 @@ function App() {
             matrix={matrix}
             canvasRef={canvasRef}
             onDownload={handleDownloadPNG}
+            onThemeChange={handleThemeChange}
           />
         )}
       </div>

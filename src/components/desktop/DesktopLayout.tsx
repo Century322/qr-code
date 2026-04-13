@@ -1,20 +1,20 @@
-import React, { useRef, useCallback } from 'react';
+import React from 'react';
 import { Image as ImageIcon, LayoutGrid, Moon, Sun } from 'lucide-react';
 import { cn } from '../../utils';
-import { DOT_STYLES, EYE_OUTER_STYLES, EYE_INNER_STYLES, CAMO_WIDTH, CAMO_HEIGHT } from '../../constants';
+import { DOT_STYLES, EYE_OUTER_STYLES, EYE_INNER_STYLES } from '../../constants';
 import { ColorPicker, GradientTypeSelector } from '../shared';
 import type { QRMatrix } from '../../types';
 import type { Settings } from '../../hooks/useSettings';
-import { random } from '../../utils';
 
 interface DesktopLayoutProps {
   settings: Settings;
   matrix: QRMatrix | null;
   canvasRef: React.RefObject<HTMLCanvasElement>;
   onDownload: () => void;
+  onThemeChange: (isDark: boolean) => void;
 }
 
-export function DesktopLayout({ settings, matrix, canvasRef, onDownload }: DesktopLayoutProps) {
+export function DesktopLayout({ settings, matrix, canvasRef, onDownload, onThemeChange }: DesktopLayoutProps) {
   const {
     text, setText,
     colorMode, setColorMode,
@@ -29,168 +29,8 @@ export function DesktopLayout({ settings, matrix, canvasRef, onDownload }: Deskt
     camoSeed, setCamoSeed,
     qrScale, setQrScale,
     errorCorrection, setErrorCorrection,
-    isDarkMode, setIsDarkMode,
+    isDarkMode,
   } = settings;
-
-  const qrDensity = matrix ? matrix.data.filter(d => d === 1).length / matrix.data.length : 0.5;
-
-  const getDotStyleForPosition = useCallback((x: number, y: number) => {
-    if (selectedDots.length === 0) return 'square';
-    const index = Math.abs(x * 13 + y * 31) % selectedDots.length;
-    return selectedDots[index];
-  }, [selectedDots]);
-
-  const isEye = useCallback((x: number, y: number, size: number) => {
-    return (x < 7 && y < 7) || (x >= size - 7 && y < 7) || (x < 7 && y >= size - 7);
-  }, []);
-
-  const renderDot = useCallback((x: number, y: number, fill: string) => {
-    const style = getDotStyleForPosition(x, y);
-    const cx = x * 10 + 5;
-    const cy = y * 10 + 5;
-    const dx = x * 10;
-    const dy = y * 10;
-
-    switch (style) {
-      case 'square': return <rect key={`${x}-${y}`} x={dx} y={dy} width="10" height="10" fill={fill} />;
-      case 'circle': return <circle key={`${x}-${y}`} cx={cx} cy={cy} r="4.5" fill={fill} />;
-      case 'rounded': return <rect key={`${x}-${y}`} x={dx+0.5} y={dy+0.5} width="9" height="9" rx="3" fill={fill} />;
-      case 'diamond': return <polygon key={`${x}-${y}`} points={`${cx},${dy} ${dx+10},${cy} ${cx},${dy+10} ${dx},${cy}`} fill={fill} />;
-      case 'star': return <path key={`${x}-${y}`} d={`M${dx+5},${dy} L${dx+6.1},${dy+3.5} L${dx+9.8},${dy+3.5} L${dx+6.8},${dy+5.7} L${dx+7.9},${dy+9.1} L${dx+5},${dy+7} L${dx+2.1},${dy+9.1} L${dx+3.2},${dy+5.7} L${dx+0.2},${dy+3.5} L${dx+3.9},${dy+3.5} Z`} fill={fill} />;
-      case 'heart': return <path key={`${x}-${y}`} d={`M${dx+5},${dy+9.5} C${dx+5},${dy+9.5} ${dx+0.5},${dy+6} ${dx+0.5},${dy+3} C${dx+0.5},${dy+1.5} ${dx+1.5},${dy+0.5} ${dx+3},${dy+0.5} C${dx+4},${dy+0.5} ${dx+4.5},${dy+1} ${dx+5},${dy+2} C${dx+5.5},${dy+1} ${dx+6},${dy+0.5} ${dx+7},${dy+0.5} C${dx+8.5},${dy+0.5} ${dx+9.5},${dy+1.5} ${dx+9.5},${dy+3} C${dx+9.5},${dy+6} ${dx+5},${dy+9.5} ${dx+5},${dy+9.5} Z`} fill={fill} />;
-      case 'leaf': return <path key={`${x}-${y}`} d={`M${dx},${dy} C${dx+5},${dy} ${dx+10},${dy+5} ${dx+10},${dy+10} C${dx+5},${dy+10} ${dx},${dy+5} ${dx},${dy} Z`} fill={fill} />;
-      default:
-        return null;
-    }
-  }, [getDotStyleForPosition]);
-
-  const renderEyeOuter = useCallback((ex: number, ey: number, fill: string, key: string) => {
-    const s = 70;
-    switch (eyeOuterStyle) {
-      case 'square': 
-        return <path key={key} d={`M${ex},${ey} h${s} v${s} h-${s} Z M${ex+10},${ey+10} v50 h50 v-50 Z`} fill={fill} fillRule="evenodd" />;
-      case 'circle': 
-        return <path key={key} d={`M${ex+35},${ey} a35,35 0 1,0 0,70 a35,35 0 1,0 0,-70 M${ex+35},${ey+10} a25,25 0 1,1 0,50 a25,25 0 1,1 0,-50`} fill={fill} fillRule="evenodd" />;
-      case 'rounded': 
-        return <path key={key} d={`M${ex+20},${ey} h30 a20,20 0 0 1 20,20 v30 a20,20 0 0 1 -20,20 h-30 a20,20 0 0 1 -20,-20 v-30 a20,20 0 0 1 20,-20 Z M${ex+20},${ey+10} a10,10 0 0 0 -10,10 v30 a10,10 0 0 0 10,10 h30 a10,10 0 0 0 10,-10 v-30 a10,10 0 0 0 -10,-10 Z`} fill={fill} fillRule="evenodd" />;
-      case 'diamond':
-        return <path key={key} d={`M${ex+35},${ey} L${ex+70},${ey+35} L${ex+35},${ey+70} L${ex},${ey+35} Z M${ex+35},${ey+10} L${ex+60},${ey+35} L${ex+35},${ey+60} L${ex+10},${ey+35} Z`} fill={fill} fillRule="evenodd" />;
-      case 'leaf': 
-        return <path key={key} d={`M${ex},${ey} C${ex+35},${ey} ${ex+70},${ey+35} ${ex+70},${ey+70} C${ex+35},${ey+70} ${ex},${ey+35} ${ex},${ey} Z M${ex+10},${ey+10} C${ex+10},${ey+35} ${ex+35},${ey+60} ${ex+60},${ey+60} C${ex+60},${ey+35} ${ex+35},${ey+10} ${ex+10},${ey+10} Z`} fill={fill} fillRule="evenodd" />;
-      default:
-        return null;
-    }
-  }, [eyeOuterStyle]);
-
-  const renderEyeInner = useCallback((ex: number, ey: number, fill: string, key: string) => {
-    switch (eyeInnerStyle) {
-      case 'square': return <rect key={key} x={ex+20} y={ey+20} width="30" height="30" fill={fill} />;
-      case 'circle': return <circle key={key} cx={ex+35} cy={ey+35} r="15" fill={fill} />;
-      case 'rounded': return <rect key={key} x={ex+20} y={ey+20} width="30" height="30" rx="10" fill={fill} />;
-      case 'diamond':
-        return <polygon key={key} points={`${ex+35},${ey+20} ${ex+50},${ey+35} ${ex+35},${ey+50} ${ex+20},${ey+35}`} fill={fill} />;
-      case 'star': return <path key={key} d={`M${ex+35},${ey+15} L${ex+39.4},${ey+29} L${ex+54.2},${ey+29} L${ex+42.2},${ey+37.8} L${ex+46.6},${ey+51.4} L${ex+35},${ey+43} L${ex+23.4},${ey+51.4} L${ex+27.8},${ey+37.8} L${ex+15.8},${ey+29} L${ex+30.6},${ey+29} Z`} fill={fill} />;
-      case 'leaf': return <path key={key} d={`M${ex+20},${ey+20} C${ex+35},${ey+20} ${ex+50},${ey+35} ${ex+50},${ey+50} C${ex+35},${ey+50} ${ex+20},${ey+35} ${ex+20},${ey+20} Z`} fill={fill} />;
-      default:
-        return null;
-    }
-  }, [eyeInnerStyle]);
-
-  const renderElements = useCallback((customGradientId?: string) => {
-    if (!matrix) return null;
-    const { size, data } = matrix;
-    const elements: React.ReactNode[] = [];
-    const cellSize = 10;
-    const gradientId = customGradientId || 'qr-gradient-desktop';
-    const fill = colorMode === 'gradient' ? `url(#${gradientId})` : fgColor;
-
-    const renderedEyes = new Set<string>();
-
-    const qrElements: React.ReactNode[] = [];
-    const camoElements: React.ReactNode[] = [];
-
-    for (let y = 0; y < size; y++) {
-      for (let x = 0; x < size; x++) {
-        const isDark = data[y * size + x] === 1;
-        if (!isDark) continue;
-
-        if (isEye(x, y, size)) {
-          const eyeKey = x < 7 ? (y < 7 ? 'tl' : 'bl') : 'tr';
-          if (!renderedEyes.has(eyeKey)) {
-            renderedEyes.add(eyeKey);
-            const ex = (x < 7 ? 0 : size - 7) * cellSize;
-            const ey = (y < 7 ? 0 : size - 7) * cellSize;
-            
-            qrElements.push(
-              <g key={`eye-${eyeKey}`}>
-                {renderEyeOuter(ex, ey, fill, `eye-outer-${eyeKey}`)}
-                {renderEyeInner(ex, ey, fill, `eye-inner-${eyeKey}`)}
-              </g>
-            );
-          }
-        } else {
-          qrElements.push(renderDot(x, y, fill));
-        }
-      }
-    }
-
-    if (enableCamo) {
-      const offsetX = Math.floor((CAMO_WIDTH - size) / 2) * 10;
-      const offsetY = Math.floor((CAMO_HEIGHT - size) / 2) * 10;
-
-      const canvasLeft = -offsetX;
-      const canvasRight = -offsetX + CAMO_WIDTH * 10;
-      const canvasTop = -offsetY;
-      const canvasBottom = -offsetY + CAMO_HEIGHT * 10;
-
-      const qrCenterX = (size * 10) / 2;
-      const qrCenterY = (size * 10) / 2;
-
-      const minUnscaledX = qrCenterX + (canvasLeft - qrCenterX) / qrScale;
-      const maxUnscaledX = qrCenterX + (canvasRight - qrCenterX) / qrScale;
-      const minUnscaledY = qrCenterY + (canvasTop - qrCenterY) / qrScale;
-      const maxUnscaledY = qrCenterY + (canvasBottom - qrCenterY) / qrScale;
-
-      const startX = Math.floor(minUnscaledX / 10);
-      const endX = Math.ceil(maxUnscaledX / 10);
-      const startY = Math.floor(minUnscaledY / 10);
-      const endY = Math.ceil(maxUnscaledY / 10);
-
-      for (let y = startY; y < endY; y++) {
-        for (let x = startX; x < endX; x++) {
-          if (x >= 0 && x < size && y >= 0 && y < size) {
-            continue;
-          }
-
-          const r = random(camoSeed + x * 1000 + y);
-          if (r < qrDensity) {
-            camoElements.push(renderDot(x, y, fill));
-          }
-        }
-      }
-    }
-
-    const qrCenterX = (size * 10) / 2;
-    const qrCenterY = (size * 10) / 2;
-
-    elements.push(
-      <g key="scaled-layer" transform={`translate(${qrCenterX}, ${qrCenterY}) scale(${qrScale}) translate(${-qrCenterX}, ${-qrCenterY})`}>
-        {camoElements}
-        {qrElements}
-      </g>
-    );
-
-    return elements;
-  }, [matrix, colorMode, fgColor, enableCamo, camoSeed, qrScale, qrDensity, isEye, renderDot, renderEyeOuter, renderEyeInner]);
-
-  const padding = enableCamo ? 0 : 4;
-  const actualWidth = enableCamo ? CAMO_WIDTH : (matrix ? matrix.size + padding * 2 : 0);
-  const actualHeight = enableCamo ? CAMO_HEIGHT : (matrix ? matrix.size + padding * 2 : 0);
-  const viewBoxWidth = actualWidth * 10;
-  const viewBoxHeight = actualHeight * 10;
-  
-  const offsetX = enableCamo ? Math.floor((CAMO_WIDTH - (matrix ? matrix.size : 0)) / 2) * 10 : padding * 10;
-  const offsetY = enableCamo ? Math.floor((CAMO_HEIGHT - (matrix ? matrix.size : 0)) / 2) * 10 : padding * 10;
 
   return (
     <div className={cn(
@@ -198,7 +38,7 @@ export function DesktopLayout({ settings, matrix, canvasRef, onDownload }: Deskt
       isDarkMode ? "bg-[#1c1c1e] text-white" : "bg-[#F2F2F7] text-[#1C1C1E]"
     )}>
       <aside className={cn(
-        "w-[380px] h-screen flex-shrink-0 overflow-y-auto",
+        "w-[380px] h-screen flex-shrink-0 overflow-y-auto scrollbar-thin",
         isDarkMode ? "bg-[#1c1c1e] border-r border-[#3a3a3c]" : "bg-[#F2F2F7] border-r border-[#E5E5EA]"
       )}>
         <div className="p-6 space-y-6">
@@ -208,7 +48,7 @@ export function DesktopLayout({ settings, matrix, canvasRef, onDownload }: Deskt
               <p className={cn("mt-1 text-sm", isDarkMode ? "text-slate-400" : "text-[#8E8E93]")}>支持全局渐变、自定义矢量图标拼接、独立定位眼设计。</p>
             </div>
             <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
+              onClick={() => onThemeChange(!isDarkMode)}
               className={cn(
                 "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 flex-shrink-0",
                 isDarkMode ? "bg-[#3a3a3c] text-yellow-400 hover:bg-[#48484a]" : "bg-[#E5E5EA] text-slate-600 hover:bg-[#D1D1D6]"

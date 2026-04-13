@@ -1,8 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { createPortal } from 'react-dom';
-import { Image as ImageIcon, FileCode2, Link as LinkIcon, Palette, Shapes, Sparkles, ChevronLeft, ChevronRight, X, Check, LayoutGrid, Moon, Sun } from 'lucide-react';
+import { Image as ImageIcon, Link as LinkIcon, Palette, Shapes, Sparkles, ChevronLeft, ChevronRight, X, LayoutGrid, Moon, Sun } from 'lucide-react';
 import { cn } from '../../utils';
-import { DOT_STYLES, EYE_OUTER_STYLES, EYE_INNER_STYLES, CAMO_WIDTH, CAMO_HEIGHT, CAMO_MARGIN } from '../../constants';
+import { DOT_STYLES, EYE_OUTER_STYLES, EYE_INNER_STYLES, CAMO_WIDTH, CAMO_HEIGHT } from '../../constants';
 import { ColorPicker, GradientTypeSelector } from '../shared';
 import type { QRMatrix } from '../../types';
 import type { Settings } from '../../hooks/useSettings';
@@ -13,6 +12,7 @@ interface MobileLayoutProps {
   matrix: QRMatrix | null;
   canvasRef: React.RefObject<HTMLCanvasElement>;
   onDownload: () => void;
+  onThemeChange: (isDark: boolean) => void;
 }
 
 const steps = [
@@ -23,7 +23,7 @@ const steps = [
   { id: 'preview', title: '预览', icon: ImageIcon },
 ];
 
-export function MobileLayout({ settings, matrix, canvasRef, onDownload }: MobileLayoutProps) {
+export function MobileLayout({ settings, matrix, canvasRef, onDownload, onThemeChange }: MobileLayoutProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [slideDirection, setSlideDirection] = useState<'left' | 'right'>('left');
@@ -49,7 +49,7 @@ export function MobileLayout({ settings, matrix, canvasRef, onDownload }: Mobile
     camoSeed, setCamoSeed,
     qrScale, setQrScale,
     errorCorrection, setErrorCorrection,
-    isDarkMode, setIsDarkMode,
+    isDarkMode,
   } = settings;
 
   const qrDensity = matrix ? matrix.data.filter(d => d === 1).length / matrix.data.length : 0.5;
@@ -317,7 +317,7 @@ export function MobileLayout({ settings, matrix, canvasRef, onDownload }: Mobile
               })()}
             </div>
             <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
+              onClick={() => onThemeChange(!isDarkMode)}
               className={cn(
                 "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300",
                 isDarkMode ? "bg-[#3a3a3c] text-yellow-400 hover:bg-[#48484a]" : "bg-[#E5E5EA] text-slate-600 hover:bg-[#D1D1D6]"
