@@ -26,11 +26,8 @@ const steps = [
 export function MobileLayout({ settings, matrix, canvasRef, onDownload, onThemeChange }: MobileLayoutProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
-  const [slideDirection, setSlideDirection] = useState<'left' | 'right'>('left');
   const [isAnimating, setIsAnimating] = useState(false);
 
-  const touchStartX = useRef(0);
-  const touchEndX = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const floatBtnRef = useRef<HTMLButtonElement>(null);
   const isDragging = useRef(false);
@@ -55,44 +52,19 @@ export function MobileLayout({ settings, matrix, canvasRef, onDownload, onThemeC
   const qrDensity = matrix ? matrix.data.filter(d => d === 1).length / matrix.data.length : 0.5;
 
   const handleNextStep = () => {
-    setSlideDirection('left');
     setIsAnimating(true);
     setTimeout(() => {
       setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
       setIsAnimating(false);
-    }, 200);
+    }, 150);
   };
 
   const handlePrevStep = () => {
-    setSlideDirection('right');
     setIsAnimating(true);
     setTimeout(() => {
       setCurrentStep((prev) => Math.max(prev - 1, 0));
       setIsAnimating(false);
-    }, 200);
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-    touchEndX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    touchEndX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchEnd = () => {
-    const diff = touchStartX.current - touchEndX.current;
-    const threshold = 50;
-    
-    if (diff > threshold) {
-      handleNextStep();
-    } else if (diff < -threshold) {
-      handlePrevStep();
-    }
-    
-    touchStartX.current = 0;
-    touchEndX.current = 0;
+    }, 150);
   };
 
   const getDotStyleForPosition = useCallback((x: number, y: number) => {
@@ -292,11 +264,9 @@ export function MobileLayout({ settings, matrix, canvasRef, onDownload, onThemeC
   );
 
   const stepContentClass = (stepIndex: number, extra?: string) => cn(
-    "transition-all duration-200 ease-out",
+    "transition-opacity duration-150 ease-out",
     currentStep === stepIndex
-      ? cn(extra || "",
-          isAnimating ? (slideDirection === 'left' ? "opacity-0 scale-95 -translate-x-8" : "opacity-0 scale-95 translate-x-8") : "opacity-100 scale-100 translate-x-0"
-        ) 
+      ? cn(extra || "", isAnimating ? "opacity-0" : "opacity-100")
       : "hidden"
   );
 
@@ -336,9 +306,6 @@ export function MobileLayout({ settings, matrix, canvasRef, onDownload, onThemeC
 
       <div 
         ref={containerRef}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
         className={cn(
           "flex-1 overflow-y-auto scrollbar-thin",
           isDarkMode ? "bg-[#2c2c2e]" : "bg-white"
