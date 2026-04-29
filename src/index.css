@@ -65,13 +65,13 @@ button {
 }
 
 .animate-in {
-  animation: animateIn 0.2s ease-out forwards;
+  animation: animateIn 0.15s ease-out forwards;
 }
 
 @keyframes animateIn {
   from {
     opacity: 0;
-    transform: scale(0.95);
+    transform: scale(0.98);
   }
   to {
     opacity: 1;

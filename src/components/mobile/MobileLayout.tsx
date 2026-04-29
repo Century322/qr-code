@@ -26,7 +26,6 @@ const steps = [
 export function MobileLayout({ settings, matrix, canvasRef, onDownload, onThemeChange }: MobileLayoutProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const floatBtnRef = useRef<HTMLButtonElement>(null);
@@ -52,19 +51,11 @@ export function MobileLayout({ settings, matrix, canvasRef, onDownload, onThemeC
   const qrDensity = matrix ? matrix.data.filter(d => d === 1).length / matrix.data.length : 0.5;
 
   const handleNextStep = () => {
-    setIsAnimating(true);
-    setTimeout(() => {
-      setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
-      setIsAnimating(false);
-    }, 150);
+    setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
   };
 
   const handlePrevStep = () => {
-    setIsAnimating(true);
-    setTimeout(() => {
-      setCurrentStep((prev) => Math.max(prev - 1, 0));
-      setIsAnimating(false);
-    }, 150);
+    setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
 
   const getDotStyleForPosition = useCallback((x: number, y: number) => {
@@ -264,10 +255,7 @@ export function MobileLayout({ settings, matrix, canvasRef, onDownload, onThemeC
   );
 
   const stepContentClass = (stepIndex: number, extra?: string) => cn(
-    "transition-opacity duration-150 ease-out",
-    currentStep === stepIndex
-      ? cn(extra || "", isAnimating ? "opacity-0" : "opacity-100")
-      : "hidden"
+    currentStep === stepIndex ? (extra || "") : "hidden"
   );
 
   return (
@@ -661,10 +649,57 @@ export function MobileLayout({ settings, matrix, canvasRef, onDownload, onThemeC
       {currentStep < 4 && (
         <button
           ref={floatBtnRef}
-          className="fixed z-[55] group touch-none select-none"
+          className="fixed z-[55] group select-none"
           style={{ bottom: '6rem', right: '1rem' }}
+          onClick={() => {
+            if (!isDragging.current) {
+              setShowPreviewModal(true);
+            }
+            isDragging.current = false;
+          }}
+          onTouchStart={(e) => {
+            isDragging.current = false;
+            const btn = e.currentTarget;
+            const startRect = btn.getBoundingClientRect();
+            const startX = startRect.left;
+            const startY = startRect.top;
+            const btnWidth = startRect.width;
+            const btnHeight = startRect.height;
+            const touch = e.touches[0];
+            const startTouchX = touch.clientX;
+            const startTouchY = touch.clientY;
+
+            const handleTouchMove = (moveEvent: TouchEvent) => {
+              const touch = moveEvent.touches[0];
+              const deltaX = touch.clientX - startTouchX;
+              const deltaY = touch.clientY - startTouchY;
+              
+              if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+                isDragging.current = true;
+              }
+              
+              if (isDragging.current) {
+                moveEvent.preventDefault();
+                let newX = startX + deltaX;
+                let newY = startY + deltaY;
+                newX = Math.max(0, Math.min(newX, window.innerWidth - btnWidth));
+                newY = Math.max(0, Math.min(newY, window.innerHeight - btnHeight));
+                btn.style.left = `${newX}px`;
+                btn.style.top = `${newY}px`;
+                btn.style.bottom = 'auto';
+                btn.style.right = 'auto';
+              }
+            };
+
+            const handleTouchEnd = () => {
+              document.removeEventListener('touchmove', handleTouchMove);
+              document.removeEventListener('touchend', handleTouchEnd);
+            };
+
+            document.addEventListener('touchmove', handleTouchMove, { passive: false });
+            document.addEventListener('touchend', handleTouchEnd);
+          }}
           onMouseDown={(e) => {
-            e.preventDefault();
             isDragging.current = false;
             const btn = e.currentTarget;
             const startRect = btn.getBoundingClientRect();
@@ -696,60 +731,10 @@ export function MobileLayout({ settings, matrix, canvasRef, onDownload, onThemeC
             const handleMouseUp = () => {
               document.removeEventListener('mousemove', handleMouseMove);
               document.removeEventListener('mouseup', handleMouseUp);
-              if (!isDragging.current) {
-                setShowPreviewModal(true);
-              }
             };
 
             document.addEventListener('mousemove', handleMouseMove);
             document.addEventListener('mouseup', handleMouseUp);
-          }}
-          onTouchStart={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            isDragging.current = false;
-            const btn = e.currentTarget;
-            const startRect = btn.getBoundingClientRect();
-            const startX = startRect.left;
-            const startY = startRect.top;
-            const btnWidth = startRect.width;
-            const btnHeight = startRect.height;
-            const touch = e.touches[0];
-            const startTouchX = touch.clientX;
-            const startTouchY = touch.clientY;
-
-            const handleTouchMove = (moveEvent: TouchEvent) => {
-              moveEvent.preventDefault();
-              const touch = moveEvent.touches[0];
-              const deltaX = touch.clientX - startTouchX;
-              const deltaY = touch.clientY - startTouchY;
-              
-              if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
-                isDragging.current = true;
-              }
-              
-              if (isDragging.current) {
-                let newX = startX + deltaX;
-                let newY = startY + deltaY;
-                newX = Math.max(0, Math.min(newX, window.innerWidth - btnWidth));
-                newY = Math.max(0, Math.min(newY, window.innerHeight - btnHeight));
-                btn.style.left = `${newX}px`;
-                btn.style.top = `${newY}px`;
-                btn.style.bottom = 'auto';
-                btn.style.right = 'auto';
-              }
-            };
-
-            const handleTouchEnd = () => {
-              document.removeEventListener('touchmove', handleTouchMove);
-              document.removeEventListener('touchend', handleTouchEnd);
-              if (!isDragging.current) {
-                setShowPreviewModal(true);
-              }
-            };
-
-            document.addEventListener('touchmove', handleTouchMove, { passive: false });
-            document.addEventListener('touchend', handleTouchEnd);
           }}
         >
           <div className="relative">
