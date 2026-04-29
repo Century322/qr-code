@@ -1,5 +1,3 @@
-import React from 'react';
-
 export interface QRMatrix {
   size: number;
   data: number[];

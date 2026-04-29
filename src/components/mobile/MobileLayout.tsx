@@ -27,7 +27,6 @@ export function MobileLayout({ settings, matrix, canvasRef, onDownload, onThemeC
   const [currentStep, setCurrentStep] = useState(0);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
 
-  const containerRef = useRef<HTMLDivElement>(null);
   const floatBtnRef = useRef<HTMLButtonElement>(null);
   const isDragging = useRef(false);
 
@@ -260,7 +259,7 @@ export function MobileLayout({ settings, matrix, canvasRef, onDownload, onThemeC
 
   return (
     <div className={cn(
-      "h-screen font-sans flex flex-col overflow-hidden",
+      "h-[100dvh] font-sans flex flex-col overflow-hidden",
       isDarkMode ? "bg-[#1c1c1e] text-white" : "bg-[#F2F2F7] text-[#1C1C1E]"
     )}>
       <div className={cn(
@@ -293,7 +292,6 @@ export function MobileLayout({ settings, matrix, canvasRef, onDownload, onThemeC
       </div>
 
       <div 
-        ref={containerRef}
         className={cn(
           "flex-1 overflow-y-auto scrollbar-thin",
           isDarkMode ? "bg-[#2c2c2e]" : "bg-white"

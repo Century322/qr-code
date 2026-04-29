@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface ThemeTransitionOverlayProps {
   isDarkMode: boolean;
   prevTheme: boolean | null;

@@ -34,7 +34,7 @@ export function DesktopLayout({ settings, matrix, canvasRef, onDownload, onTheme
 
   return (
     <div className={cn(
-      "h-screen font-sans flex overflow-hidden",
+      "h-[100dvh] font-sans flex overflow-hidden",
       isDarkMode ? "bg-[#1c1c1e] text-white" : "bg-[#F2F2F7] text-[#1C1C1E]"
     )}>
       <aside className={cn(

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSettings } from './hooks/useSettings';
 import { useQRCode } from './hooks/useQRCode';
 import { MobileLayout } from './components/mobile';
